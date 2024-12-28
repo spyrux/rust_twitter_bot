@@ -1,4 +1,5 @@
 use clap::{command, Parser};
+use gihun_core::loaders::txt::load_txts_from_dir;
 use rig::providers::{self, openai};
 use gihun_core::attention::{Attention, AttentionConfig};
 use anyhow::Result;
@@ -99,9 +100,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let conn = Connection::open(args.db_path).await?;
     let mut knowledge = KnowledgeBase::new(conn.clone(), embedding_model).await?;
 
-    let documents_dir = std::env::current_dir()?.join("./transcripts");
+    let dialogue_dir = std::env::current_dir()?.join("./dialogue");
 
-    let knowledge_chunks = load_pdfs_from_dir(documents_dir);
+    let knowledge_chunks = load_txts_from_dir(dialogue_dir);
     
     let mut documents: Vec<Document> = Vec::new();
 
@@ -110,11 +111,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             for chunk in values{
                 documents.push(Document {
                     id: format!("{}-{}", i, key), // Combine the index and the key (chunk.0)
-                    source_id: "squidgame".to_string(),
+                    source_id: "dialogue".to_string(),
                     content: chunk.to_string(),
                     created_at: chrono::Utc::now(),
                 });
-
+                print!("{}", chunk.to_string())
             }
 
         }

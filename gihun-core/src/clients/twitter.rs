@@ -1,7 +1,7 @@
 use crate::{
     agent::Agent,
     attention::{Attention, AttentionCommand, AttentionContext},
-    knowledge::{ChannelType, Message, Source},
+    knowledge::{ChannelType, KnowledgeBase, Message, Source},
 };
 use rand::Rng;
 use rig::{
@@ -145,9 +145,10 @@ impl<M: CompletionModel + 'static, E: EmbeddingModel + 'static> TwitterClient<M,
                 "Current time: {}",
                 chrono::Local::now().format("%I:%M:%S %p, %Y-%m-%d")
             ))
-            .context("Please keep your responses concise and under 280 characters.")
+            .context("Please keep your responses concise and under 280 characters. Use the provided document to draw inspiriation from lines that you, Gi-hun, would say.")
+            .dynamic_context(4, self.agent.knowledge().clone().document_index())
             .build();
-        let tweet_prompt = "Share a single brief thought or observation in one short sentence. Be direct and concise. No questions, hashtags, or emojis.";
+        let tweet_prompt = "Share brief thoughts or observation in one or two short sentences.";
         let response = match agent.prompt(&tweet_prompt).await {
             Ok(response) => response,
             Err(err) => {
@@ -353,7 +354,8 @@ impl<M: CompletionModel + 'static, E: EmbeddingModel + 'static> TwitterClient<M,
                     chrono::Local::now().format("%I:%M:%S %p, %Y-%m-%d")
                 ))
                 .context("Please keep your responses concise and under 280 characters.")
-                .context("Write a natural reply to the quoted tweet in 1-2 short sentences. Keep it conversational and relevant.")
+                .context("Write a natural reply to the quoted tweet in 1-2 short sentences. Use the provided document to find similar lines that you, Gi-hun, would say. Keep it conversational and relevant.")
+                .dynamic_context(4, self.agent.knowledge().clone().document_index())
                 .build();
 
             let response = match agent.prompt(&tweet_content).await {

@@ -15,14 +15,36 @@ struct Document {
     content: String,
 }
 
-pub fn load_pdf(path: PathBuf) -> Result<Vec<String>> {
+pub fn load_dialog_pdf(path: PathBuf) -> Result<Vec<String>> {
+    let mut chunks = Vec::new();
+
+    for entry in PdfFileLoader::with_glob(path.to_str().unwrap())?.read() {
+        let content = entry?;
+        println!("Raw PDF Content: {:?}", content);
+        // Split content by line breaks
+        for line in content.lines() {
+            let trimmed_line = line.trim();
+            // Only include non-empty lines as chunks
+            if !trimmed_line.is_empty() {
+                chunks.push(trimmed_line.to_string());
+            }
+        }
+    }
+    if chunks.is_empty() {
+        anyhow::bail!("No content found in PDF file: {:?}", path);
+    }
+
+    Ok(chunks)
+}
+
+pub fn load_pdf_flattened(path: PathBuf) -> Result<Vec<String>> {
     let mut chunks = Vec::new();
     let mut current_chunk = String::new();
     let chunk_size = 2000; // Approximately 2000 characters per chunk
 
     for entry in PdfFileLoader::with_glob(path.to_str().unwrap())?.read() {
         let content = entry?;
-        info!("Content length: {}", content.len());  
+
         // Split content into words
         let words: Vec<&str> = content.split_whitespace().collect();
 
@@ -54,19 +76,19 @@ pub fn load_pdf(path: PathBuf) -> Result<Vec<String>> {
 
 pub fn load_pdfs_from_dir(documents_dir: PathBuf) -> Result<Vec<(String, Vec<String>)>> {
     let mut pdf_chunks = Vec::new();
-    info!("Listing files in directory: {:?}", documents_dir);
+
     for entry in fs::read_dir(&documents_dir).context("Failed to read documents directory")? {
         let entry = entry.context("Failed to read entry")?;
         let path = entry.path();
-        info!("Found file: {:?}", path);
+
         if path.extension().map_or(false, |ext| ext == "pdf") {
             let file_name = path.file_name()
                 .and_then(|name| name.to_str())
                 .unwrap_or("Unknown file")
                 .to_string();
 
-            let chunks = load_pdf(path).with_context(|| format!("Failed to load {}", file_name))?;
-            info!("Adding document with ID: {}", file_name);
+            let chunks = load_dialog_pdf(path).with_context(|| format!("Failed to load {}", file_name))?;
+
             pdf_chunks.push((file_name, chunks));
         }
     }

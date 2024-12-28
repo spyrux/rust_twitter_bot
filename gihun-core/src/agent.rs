@@ -67,7 +67,7 @@ impl<M: CompletionModel, E: EmbeddingModel> Agent<M, E> {
             .preamble(&self.character.preamble)
             .context(&character_context)
             .context(&style_context)
-            .dynamic_context(2, self.knowledge.clone().document_index());
+            .dynamic_context(4, self.knowledge.clone().document_index());
 
         builder
     }

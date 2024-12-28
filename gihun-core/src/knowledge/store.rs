@@ -86,6 +86,10 @@ impl<E: EmbeddingModel> KnowledgeBase<E> {
         SqliteVectorIndex::new(self.embedding_model, self.document_store)
     }
 
+    pub fn dialogue_index(self) -> SqliteVectorIndex<E, Document> {
+        SqliteVectorIndex::new(self.embedding_model, self.document_store)
+    }
+
     pub fn message_index(self) -> SqliteVectorIndex<E, Message> {
         SqliteVectorIndex::new(self.embedding_model, self.message_store)
     }
@@ -287,6 +291,7 @@ impl<E: EmbeddingModel> KnowledgeBase<E> {
         info!("Successfully added documents to KnowledgeBase");
         Ok(())
     }
+
 
     
 
