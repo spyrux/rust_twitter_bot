@@ -1,7 +1,8 @@
-# ASUKA
-Asuka is an AI agent Built with [rig](https://github.com/0xPlaygrounds/rig/) and a fork of [Rina](https://github.com/cornip/Rina)
+# GIHUN
+GIHUN is an AI agent Built with [rig](https://github.com/0xPlaygrounds/rig/) and a fork of [Rina](https://github.com/cornip/Rina).
 
-[TWITTER](https://x.com/Asuka_RIG)
+Enhanced with RAG feature training.
+
 
 ## Added Features
 
