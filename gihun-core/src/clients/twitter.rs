@@ -132,7 +132,7 @@ impl<M: CompletionModel + 'static, E: EmbeddingModel + 'static> TwitterClient<M,
 
             // Sleep between tasks
             tokio::time::sleep(tokio::time::Duration::from_secs(
-                self.random_number(15 * 60, 60 * 60),
+                self.random_number(15 * 60, 30 * 60),
             )).await;
         }
     }
