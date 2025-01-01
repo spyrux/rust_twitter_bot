@@ -12,7 +12,7 @@ use agent_twitter_client::scraper::Scraper;
 use std::collections::HashSet;
 use std::sync::Arc;
 use tracing::{debug, error, info};
-
+use std::collections::VecDeque;
 
 const MAX_TWEET_LENGTH: usize = 280;
 const MAX_HISTORY_TWEETS: i64 = 10;
@@ -82,6 +82,8 @@ impl<M: CompletionModel + 'static, E: EmbeddingModel + 'static> TwitterClient<M,
 
     pub async fn start(&self) {
         info!("Starting Twitter bot");
+        let mut seen_tweet_ids: VecDeque<String> = VecDeque::new();
+
         loop {
             match self.random_number(0, 3) {
                 // 50% chance for new tweets
@@ -94,9 +96,10 @@ impl<M: CompletionModel + 'static, E: EmbeddingModel + 'static> TwitterClient<M,
                  // 50% chance for timeline
                 2 | 3 => {
                     debug!("Process home timeline");
-                    match self.scraper.get_home_timeline(5, Vec::new()).await {
+                    match self.scraper.get_home_timeline(5, seen_tweet_ids).await {
                         Ok(tweets) => {
                             for tweet in tweets {
+
                                 let tweet_content = tweet["legacy"]["full_text"]
                                     .as_str()
                                     .unwrap_or_default()
@@ -105,6 +108,9 @@ impl<M: CompletionModel + 'static, E: EmbeddingModel + 'static> TwitterClient<M,
                                     .as_str()
                                     .unwrap_or_default()
                                     .to_string();
+                                if seen_tweet_ids.len() >= 5 && !seen_tweet_ids.contains(&tweet_id) {
+                                    seen_tweet_ids.pop_front();
+                                }
                                 match self.random_number(0, 3){
                                     0 | 1 => {
                                         self.handle_quote(&tweet_content, &tweet_id).await;
@@ -118,7 +124,7 @@ impl<M: CompletionModel + 'static, E: EmbeddingModel + 'static> TwitterClient<M,
                                     }
                                     _ => unreachable!(),
                                 }
-
+                                seen_tweet_ids.push_back(&tweet_id);
                                 tokio::time::sleep(tokio::time::Duration::from_secs(self.random_number(60, 180))).await;
                             }
                         }
@@ -132,7 +138,7 @@ impl<M: CompletionModel + 'static, E: EmbeddingModel + 'static> TwitterClient<M,
 
             // Sleep between tasks
             tokio::time::sleep(tokio::time::Duration::from_secs(
-                self.random_number(15 * 60, 30 * 60),
+                self.random_number(30 * 60, 60 * 60),
             )).await;
         }
     }
