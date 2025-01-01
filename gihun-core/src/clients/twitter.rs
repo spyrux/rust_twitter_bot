@@ -82,7 +82,7 @@ impl<M: CompletionModel + 'static, E: EmbeddingModel + 'static> TwitterClient<M,
 
     pub async fn start(&self) {
         info!("Starting Twitter bot");
-        let mut seen_tweet_ids: VecDeque<String> = VecDeque::new();
+        let mut seen_tweet_ids: Vec<String> = Vec::new();
 
         loop {
             match self.random_number(0, 3) {
@@ -109,7 +109,7 @@ impl<M: CompletionModel + 'static, E: EmbeddingModel + 'static> TwitterClient<M,
                                     .unwrap_or_default()
                                     .to_string();
                                 if seen_tweet_ids.len() >= 5 && !seen_tweet_ids.contains(&tweet_id) {
-                                    seen_tweet_ids.pop_front();
+                                    seen_tweet_ids.remove(0);
                                 }
                                 match self.random_number(0, 3){
                                     0 | 1 => {
@@ -124,7 +124,7 @@ impl<M: CompletionModel + 'static, E: EmbeddingModel + 'static> TwitterClient<M,
                                     }
                                     _ => unreachable!(),
                                 }
-                                seen_tweet_ids.push_back(&tweet_id);
+                                seen_tweet_ids.push(tweet_id.clone());
                                 tokio::time::sleep(tokio::time::Duration::from_secs(self.random_number(60, 180))).await;
                             }
                         }
