@@ -96,7 +96,7 @@ impl<M: CompletionModel + 'static, E: EmbeddingModel + 'static> TwitterClient<M,
                  // 50% chance for timeline
                 2 | 3 => {
                     debug!("Process home timeline");
-                    match self.scraper.get_home_timeline(5, seen_tweet_ids).await {
+                    match self.scraper.get_home_timeline(5, seen_tweet_ids.clone()).await {
                         Ok(tweets) => {
                             for tweet in tweets {
 
